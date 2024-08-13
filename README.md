@@ -1,3 +1,3 @@
-This repository is to demonstrate my works. 
+This repository is to demonstrate few of my works. 
 
 Enjoy🤎✨
