@@ -1,0 +1,74 @@
+1. Create data set
+
+USE sql_and_tableau;
+-- Create a dataset containing the required columns
+CREATE TABLE career_track_completions AS
+SELECT
+    ROW_NUMBER() OVER (ORDER BY cts.student_id, cts.track_id) AS student_track_id,
+    cts.student_id,
+    cti.track_name,
+    cts.date_enrolled,
+    CASE WHEN cts.date_completed IS NULL THEN 0 ELSE 1 END AS track_completed,
+    DATEDIFF(cts.date_completed, cts.date_enrolled) AS days_for_completion
+FROM
+    career_track_student_enrollments cts
+JOIN
+    career_track_info cti ON cts.track_id = cti.track_id;
+
+
+
+
+
+2. Which career track do students enroll most in? 
+
+SELECT
+    track_id,
+    COUNT(*) AS enrollments
+FROM
+    career_track_student_enrollments
+GROUP BY
+    track_id
+ORDER BY
+    enrollments DESC
+LIMIT 1;
+
+
+
+
+3. What is the career track completion rate? Can you say if it’s increasing,
+decreasing, or staying constant with time?
+
+
+SELECT
+    date_enrolled,
+    COUNT(DISTINCT CASE WHEN date_completed IS NOT NULL THEN student_id END) AS completed_students,
+    COUNT(DISTINCT student_id) AS total_students,
+    ROUND(COUNT(DISTINCT CASE WHEN date_completed IS NOT NULL THEN student_id END) / COUNT(DISTINCT student_id) * 100, 2) AS completion_rate
+FROM
+    career_track_student_enrollments
+GROUP BY
+    date_enrolled
+ORDER BY
+    date_enrolled;
+    
+  
+
+
+4. How long does it typically take students to complete a career track? What
+type of subscription is most suitable for students who aim to complete a
+career track: monthly, quarterly, or annual?
+
+
+SELECT
+    cti.track_name,
+    AVG(DATEDIFF(cts.date_completed, cts.date_enrolled)) AS average_completion_days
+FROM
+    career_track_student_enrollments cts
+JOIN
+    career_track_info cti ON cts.track_id = cti.track_id
+WHERE
+    cts.date_completed IS NOT NULL
+GROUP BY
+    cts.track_id, cti.track_name
+ORDER BY
+    average_completion_days;
